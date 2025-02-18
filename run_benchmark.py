@@ -12,7 +12,7 @@ def main(argv):
     procs = []
     for i in range(0, n):
         bench_f = open("out_bench_{}.txt".format(i), 'a')
-        bench_cmd = "cd benchmark; ./benchmark {id} {ip}:{spines_ext_port} 1000000 500".format(id=i, ip="192.168.101.107", spines_ext_port=8120)
+        bench_cmd = "cd benchmark; ./benchmark {id} {ip}:{spines_ext_port} 1000000 50".format(id=i, ip="192.168.101.107", spines_ext_port=8120)
         procs.append(subprocess.Popen(bench_cmd, stdout=bench_f, stderr=bench_f, shell=True))
 
     # Wait for procs to finish

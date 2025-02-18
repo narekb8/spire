@@ -17,7 +17,7 @@ def main(argv):
     spines_int_cmd = "cd spines/daemon; ./spines -p 8100 -c spines_int.conf -I 192.168.101.10{}".format(i)
     spines_ext_cmd = "cd spines/daemon; ./spines -p 8120 -c spines_ext.conf -I 192.168.101.10{}".format(i)
     sm_cmd         = "cd scada_master; ./scada_master {} {} 192.168.101.10{}:8100 192.168.101.10{}:8120".format(i,i,i,i)
-    prime_cmd      = "cd prime/bin; ./prime -i {} -g {}".format(i,i)
+    prime_cmd      = "cd prime/bin; ./prime -i {} -g {} -f 1".format(i,i)
 
     sp_proc = subprocess.Popen(spines_int_cmd, stdout=spines_int_f, stderr=spines_int_f, shell=True)
     subprocess.Popen(spines_ext_cmd, stdout=spines_ext_f, stderr=spines_ext_f, shell=True)

@@ -71,7 +71,7 @@ server_variables    VAR;
 network_variables   NET;
 server_data_struct  DATA;
 benchmark_struct    BENCH;
-int Curr_N, Curr_K,Curr_f;
+int Curr_N, Curr_K,Curr_f, Use_FI;
 
 
 /* Data structure initialization funtions */

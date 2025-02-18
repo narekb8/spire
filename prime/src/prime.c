@@ -64,6 +64,8 @@ extern server_data_struct DATA;
 extern int Curr_N;
 extern int Curr_k;
 extern int Curr_f;
+extern int Use_FI;
+
 /* Local Function Definitions */
 void Usage(int argc, char **argv);
 void Print_Usage(void);
@@ -181,6 +183,7 @@ void Usage(int argc, char **argv)
   VAR.F                    = NUM_F;
   VAR.K                    = NUM_K;
   VAR.Num_Servers          = (3* VAR.F + 2* VAR.K +1);
+  Use_FI                   = 0;
    
   if(VAR.Num_Servers < (3*NUM_F + 2*NUM_K + 1)) {
     Alarm(PRINT, "Configuration error: NUM_SERVERS is less than 3f+2k+1\n");
@@ -207,6 +210,17 @@ void Usage(int argc, char **argv)
       if(VAR.My_Server_ID > VAR.Num_Servers || VAR.My_Server_ID <= 0) {
 	Alarm(PRINT,"Invalid server id: %d.  Index must be between 1 and %d.\n",
 	      VAR.My_Server_ID, VAR.Num_Servers);
+	exit(0);
+      }
+      argc--; argv++;
+    }
+    else if( (argc > 1) && (!strncmp(*argv, "-f", 2)) ) {
+      sscanf(argv[1], "%d", &tmp);
+      Use_FI = tmp;
+      printf("Current FI Value at Launch %d\n",Use_FI);
+      if(Use_FI > 1) {
+	Alarm(PRINT,"Invalid Fault Injection Count %d.  Index must be 0 or 1.\n",
+	      Use_FI);
 	exit(0);
       }
       argc--; argv++;

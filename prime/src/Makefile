@@ -63,20 +63,20 @@ PRIME_OBJ = prime.o data_structs.o utility.o network.o pre_order.o \
 	util_dll.o validate.o nm_process.o process.o packets.o order.o  \
 	signature.o net_wrapper.o merkle.o suspect_leader.o \
 	reliable_broadcast.o view_change.o erasure.o recon.o \
-	tc_wrapper.o catchup.o proactive_recovery.o $(WRAPPER_OBJ)
+	tc_wrapper.o catchup.o proactive_recovery.o fault_injection.o $(WRAPPER_OBJ)
 
 
 DRIVER_OBJ = driver.o data_structs.o utility.o network.o pre_order.o \
 	util_dll.o packets.o nm_process.o process.o order.o \
 	signature.o net_wrapper.o erasure.o validate.o suspect_leader.o \
 	reliable_broadcast.o view_change.o catchup.o proactive_recovery.o \
-	merkle.o recon.o tc_wrapper.o $(WRAPPER_OBJ)
+	merkle.o recon.o tc_wrapper.o fault_injection.o $(WRAPPER_OBJ)
 
 CM_OBJ=config_manager.o data_structs.o utility.o network.o pre_order.o \
         util_dll.o packets.o nm_process.o process.o order.o \
         signature.o net_wrapper.o erasure.o validate.o suspect_leader.o \
         reliable_broadcast.o view_change.o catchup.o proactive_recovery.o \
-        merkle.o recon.o tc_wrapper.o $(WRAPPER_OBJ)
+        merkle.o recon.o tc_wrapper.o fault_injection.o $(WRAPPER_OBJ)
 
 #CM_OBJ=config_manager.o $(WRAPPER_OBJ)
 
@@ -84,13 +84,13 @@ CA_OBJ=config_agent.o data_structs.o utility.o network.o pre_order.o \
         util_dll.o packets.o nm_process.o process.o order.o \
         signature.o net_wrapper.o erasure.o validate.o suspect_leader.o \
         reliable_broadcast.o view_change.o catchup.o proactive_recovery.o \
-        merkle.o recon.o tc_wrapper.o $(WRAPPER_OBJ)
+        merkle.o recon.o tc_wrapper.o fault_injection.o $(WRAPPER_OBJ)
 
 
 GEN_KEYS_OBJ =  generate_keys.o tc_wrapper.o data_structs.o utility.o network.o pre_order.o \
         util_dll.o validate.o nm_process.o process.o packets.o order.o  \
         signature.o net_wrapper.o merkle.o suspect_leader.o proactive_recovery.o\
-        reliable_broadcast.o view_change.o erasure.o recon.o  catchup.o $(WRAPPER_OBJ)
+        reliable_broadcast.o view_change.o erasure.o recon.o  catchup.o fault_injection.o $(WRAPPER_OBJ)
 
 all: $(STDUTIL_LIB) $(LIBSPREAD_UTIL) $(TC_LIB) prime driver gen_keys config_manager config_agent
 
