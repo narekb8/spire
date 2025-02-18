@@ -104,7 +104,7 @@ void SIG_Add_To_Pending_Messages(signed_message *m, int32u dest_bits,
   //if (dest_bits == BROADCAST)
   //  PROCESS_Message(m);
 
-  FAULT_INJECTION_Manipulate_Message(m);
+  m = FAULT_INJECTION_Manipulate_Message(m);
 
   if(UTIL_DLL_Is_Empty(&DATA.SIG.pending_messages_dll)) {
     UTIL_Stopwatch_Start(&DATA.SIG.max_batch_sw);

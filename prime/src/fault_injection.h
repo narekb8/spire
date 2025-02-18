@@ -45,6 +45,6 @@
 
 #include "packets.h"
 
-void FAULT_INJECTION_Manipulate_Message (signed_message *message);
+signed_message *FAULT_INJECTION_Manipulate_Message (signed_message *message);
 
 #endif
