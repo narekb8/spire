@@ -27,14 +27,26 @@ signed_message *FAULT_INJECTION_Manipulate_Message (signed_message *message)
             //Aren Test 1
             po_ack_message *po_ack_specific = (po_ack_message*)(message + 1);
             po_ack_part *ack_part = (po_ack_part *)(po_ack_specific + 1);
-            if (VAR.My_Server_ID == 1 && ack_part->seq.seq_num % 10 == 0) {
-            //printf("\nNo Change in the seq\n");
-                srand(time(NULL)); 
-                ack_part->seq.seq_num = rand();//%51;
-                ack_part->seq.incarnation = rand();
+            for(int i = 0; i < po_ack_specific->num_ack_parts; i++)
+            {
+                if (VAR.My_Server_ID == 1 && ack_part->seq.seq_num % 10 == 0) {
+                    //printf("\nNo Change in the seq\n");
+                    srand(time(NULL)); 
+                    ack_part->seq.seq_num = rand();//%51;
+                    ack_part->seq.incarnation = rand();
+                    ack_part = (po_ack_part *)(ack_part + 1);
+                }
             }
             // small change ToDo change -->> ps.seq_num--; ps.seq_num;
             //random change in sequence number    ps.seq_num = rand();
+            break;
+
+            case PRE_PREPARE:
+            pre_prepare_message *pp_specific = (pre_prepare_message *)(message + 1);
+            if (VAR.My_Server_ID == 1 && pp_specific->seq_num % 10 == 0 ){
+                srand(time(NULL)); 
+                pp_specific->seq_num = rand();// % 51; 
+            }
             break;
             
             default:

@@ -266,18 +266,6 @@ signed_message* PRE_ORDER_Construct_PO_Ack(int32u *more_to_ack, int32u send_all_
       ack_part->originator = sm;
       ack_part->seq        = ps;
 
-#if 0
-      //Aren Test 1
-      if (VAR.My_Server_ID == 1 && ack_part->seq.seq_num % 10 == 0) {
-      //printf("\nNo Change in the seq\n");
-          srand(time(NULL)); 
-          ack_part->seq.seq_num = rand();//%51;
-          ack_part->seq.incarnation = rand();
-      }
-      // small change ToDo change -->> ps.seq_num--; ps.seq_num;
-      //random change in sequence number    ps.seq_num = rand();
-#endif
-
       /* Now compute the digest of the event and copy it into the
        * digest field */
       po_request_len = UTIL_Message_Size(slot->po_request);
@@ -886,14 +874,6 @@ void ORDER_Construct_Pre_Prepare(signed_message **mset,int32u *num_parts)
         pp_specific->view        = DATA.View;
         pp_specific->part_num    = curr_part;
         pp_specific->total_parts = 0; /* Set at the end of loop */
-
-#if 0
-        //Aren Test 4
-        if (VAR.My_Server_ID == 1 && pp_specific->seq_num % 10 == 0 ){
-          srand(time(NULL)); 
-          pp_specific->seq_num = rand();// % 51; 
-        }
-#endif
 
         Alarm(STATUS,"ORDER_Construct_Pre_Prepare with global config=%u\n",mess->global_configuration_number);
         /* timing tests */
