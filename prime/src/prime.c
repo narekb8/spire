@@ -218,8 +218,8 @@ void Usage(int argc, char **argv)
       sscanf(argv[1], "%d", &tmp);
       Use_FI = tmp;
       printf("Current FI Value at Launch %d\n",Use_FI);
-      if(Use_FI > 1) {
-	Alarm(PRINT,"Invalid Fault Injection Count %d.  Index must be 0 or 1.\n",
+      if(Use_FI > 2) {
+	Alarm(PRINT,"Invalid Fault Injection Count %d.  Index must be 0, 1 or 2.\n",
 	      Use_FI);
 	exit(0);
       }

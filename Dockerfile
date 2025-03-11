@@ -11,7 +11,7 @@ RUN dnf install -y openssl-devel flex byacc qt5-devel cmake python
 # Install debugging tools
 RUN dnf install -y gdb valgrind
 
-# Copy files
+# Copy source files
 COPY . /app/spire
 WORKDIR /app/spire
 
@@ -21,13 +21,7 @@ RUN cd example_conf; ./install_conf.sh conf_4
 # Build Spire core (Spines, Prime, SCADA Master, benchmark)
 RUN make core
 
-# Build full Spire system
-#RUN printf 'Y\n1\n' | make libs
-#RUN make
-
-# Generate Keys
-RUN cd spines/daemon; bash gen_keys.sh
-RUN cd prime/bin; ./gen_keys; ./gen_tpm_keys.sh
-RUN cd scada_master; ./gen_keys
+# Run the script to check and generate keys if needed
+RUN python3 /app/spire/check_keys.py
 
 #ENTRYPOINT /bin/bash

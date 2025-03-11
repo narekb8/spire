@@ -9,7 +9,11 @@ def main(argv):
     #args = get_args(argv)
 
     #i = args.id
-    spines_ext_f = open("out_spines_ext_{}.txt".format("client"), 'a')
+    # Output to file
+    # spines_ext_f = open("out_spines_ext_{}.txt".format("client"), 'a')
+
+    # Output to docker logs
+    spines_ext_f = sys.stdout
 
     spines_ext_cmd = "cd spines/daemon; ./spines -p 8120 -c spines_ext.conf -I 192.168.101.10{}".format(7)
 

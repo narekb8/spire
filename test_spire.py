@@ -87,7 +87,7 @@ def init_containers():
     # start replicas
     for i in range(1,NUM_SERVERS+1):
         cmd_str = "docker run --cap-add=NET_ADMIN --name {serv} --network {net} --ip {ip} {img} {cmd} {args}".format(serv=server_name(i), net=NETWORK_NAME,
-        img=IMAGE_NAME, ip=server_ip(i), cmd=RUN_COMMAND, args="-id {}".format(i))
+        img=IMAGE_NAME, ip=server_ip(i), cmd=RUN_COMMAND, args="-id {} -f 0".format(i))
         print(cmd_str)
         subprocess.Popen(cmd_str, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
