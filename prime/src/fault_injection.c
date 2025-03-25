@@ -13,6 +13,7 @@ extern server_variables   VAR;
 extern network_variables  NET;
 extern benchmark_struct   BENCH;
 extern int Use_FI;
+int count = 0;
 
 const char* packet_type_names[] = {"DUMMY", 
 		   "PO_REQUEST", "PO_ACK", "PO_ARU", "PROOF_MATRIX",
@@ -72,12 +73,15 @@ signed_message *FAULT_INJECTION_Manipulate_Message (signed_message *message)
             break;
         }
     }
-    else if(Use_FI == 2)
+    else if(Use_FI == 2 && ++count % 10 == 0)
     {
+        if(message->type <= 12 && message->type >= 10) return;
+        
         srand(time(NULL));
         unsigned int offset = rand() % message->len;
         char rand_val = rand() % 256;
-        char *offset_pointer = ((char *) message) + offset;
+        // signed message header size is 160, increment offset past this to prevent rampant segfaults
+        char *offset_pointer = ((char *) message) + offset + 160;
 
         char base_val = *offset_pointer;
         *offset_pointer = rand_val;
@@ -85,8 +89,8 @@ signed_message *FAULT_INJECTION_Manipulate_Message (signed_message *message)
         /* Not really sure how to log these changes uniquely here,
          * using type + len for now, but not if sure that 
          * guarantees a unique marker for each packet. */
-        Alarm(PRINT, "Type: %s - Len: %d - Modified Byte: %d from %d to %d.\n", 
-                packet_type_names[message->type], message->len, offset, base_val, rand_val);
+        Alarm(PRINT, "Count: %d - Type: %s - Len: %d - Modified Byte: %d from %d to %d.\n", 
+                count, packet_type_names[message->type], message->len, offset, base_val, rand_val);
     }
 
     return message;

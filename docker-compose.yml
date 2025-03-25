@@ -26,7 +26,7 @@ services:
         ipv4_address: 192.168.101.102
     cap_add:
       - NET_ADMIN
-    command: python run_replica.py -id 2 -f 2
+    command: python run_replica.py -id 2 -f 0
 
   spire3:
     image: spire-img
@@ -36,7 +36,7 @@ services:
         ipv4_address: 192.168.101.103
     cap_add:
       - NET_ADMIN
-    command: python run_replica.py -id 3 -f 2
+    command: python run_replica.py -id 3 -f 0
 
   spire4:
     image: spire-img
@@ -46,7 +46,7 @@ services:
         ipv4_address: 192.168.101.104
     cap_add:
       - NET_ADMIN
-    command: python run_replica.py -id 4 -f 2
+    command: python run_replica.py -id 4 -f 0
 
   client:
     image: spire-img

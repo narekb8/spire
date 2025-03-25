@@ -1,6 +1,8 @@
 import sys, argparse
 import subprocess
 import time
+import threading
+import asyncio
 
 RUN_COMMAND   = "python run_replica.py"
 # Script assumes replica is launched with the command:
@@ -53,7 +55,84 @@ def get_args(argv):
     parser_client.add_argument('n', type=int, help='number of benchmark instances to launch')
     parser_client.set_defaults(func=benchmark)
 
+    parser_client = subparsers.add_parser('loop', description='Start benchmark client on loop')
+    parser_client.add_argument('n', type=int, help='number of benchmark instances to launch')
+    parser_client.set_defaults(func=benchmark_loop)
+
     return parser.parse_args()
+
+def benchmark_loop(args):
+    # run a couple benchmarks and track how long they take
+
+    """average = 0
+    max = 0
+    print("Running calibration benchmarks")
+
+    for i in range(5):
+        run_time = time.time()
+        cmd_str = "docker exec {container} python run_benchmark.py -n {num}".format(container=CLIENT_NAME, num=args.n)
+
+        subprocess.run("docker compose up -d", shell=True)
+        subprocess.run(cmd_str, shell=True)
+        subprocess.run("docker compose down", shell=True)
+
+        run_time = time.time() - run_time
+        average += run_time
+        if run_time > max:
+            max = run_time
+
+    average = average / 5
+    time_out = average + ((max - average) * 2)
+    """
+    if True:
+        
+        cmd_str = "docker exec {container} python run_benchmark.py -n {num}".format(container=CLIENT_NAME, num=args.n)
+        print(cmd_str)
+        subprocess.run("docker compose up -d", shell=True)
+        subprocess.run(cmd_str, shell=True)
+
+        spire1 = subprocess.run("docker logs spire1", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        spire2 = subprocess.run("docker logs spire2", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        spire3 = subprocess.run("docker logs spire3", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        spire4 = subprocess.run("docker logs spire4", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        check_logs(spire1.stdout., spire2.stdout.lower(), spire3.stdout.lower(), spire4.stdout.lower())
+
+        subprocess.run("docker compose down", shell=True)
+
+        #cmd_str = "docker exec {} cd benchmark; ./benchmark id 192.168.101.108:8120  1000000 500 >outputsecond11.txt  2>&1 &".format('HMI')
+        #subprocess.run(cmd_str, shell=True)
+        #print(cmd_str)
+
+def check_logs(s1: str, s2: str, s3: str, s4: str):
+    
+    if "... goodbye" in s1:
+        # output to file
+        with open("spire1_output.txt", "w") as text_file:
+            print("{}".format(s1), file=text_file)
+
+        print("Error found in spire1, outputting logs")
+
+    elif "... goodbye" in s2 or "exit caused by alarm" in s2:
+        # output to file
+        with open("spire2_output.txt", "w") as text_file:
+            print("{}".format(s2), file=text_file)
+
+        print("Error found in spire2, outputting logs")
+
+    elif "... goodbye" in s3 or "exit caused by alarm" in s3:
+        # output to file
+        with open("spire3_output.txt", "w") as text_file:
+            print("{}".format(s3), file=text_file)
+
+        print("Error found in spire3, outputting logs")
+
+    elif "... goodbye" in s4 or "exit caused by alarm" in s4:
+        # output to file
+        with open("spire4_output.txt", "w") as text_file:
+            print("{}".format(s4), file=text_file)
+
+        print("Error found in spire4, outputting logs")
 
 def benchmark(args):
     cmd_str = "docker exec {container} python run_benchmark.py -n {num}".format(container=CLIENT_NAME, num=args.n)

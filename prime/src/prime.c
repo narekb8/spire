@@ -71,6 +71,35 @@ void Usage(int argc, char **argv);
 void Print_Usage(void);
 void Init_Memory_Objects(void);
 
+// Signal handler to print backtrace on unrecoverable abort
+void signal_handler(int sig) {
+    
+  int size = 100, j, nptrs;
+  void *buffer[100];
+  char **strings;
+
+  nptrs = backtrace(buffer, size);
+  printf("backtrace() returned %d addresses for sig %d\n", nptrs, sig);
+
+  /* The call backtrace_symbols_fd(buffer, nptrs, STDOUT_FILENO)
+     would produce similar output to the following: */
+
+  strings = backtrace_symbols(buffer, nptrs);
+  if (strings == NULL) {
+      perror("backtrace_symbols");
+      exit(EXIT_FAILURE);
+  }
+
+  for (j = 0; j < nptrs; j++)
+      printf("%s\n", strings[j]);
+
+  free(strings);
+
+  printf("... Goodbye\n");
+
+  exit(0);
+}
+
 int main(int argc, char** argv) 
 {
   setlinebuf(stdout);
@@ -218,11 +247,18 @@ void Usage(int argc, char **argv)
       sscanf(argv[1], "%d", &tmp);
       Use_FI = tmp;
       printf("Current FI Value at Launch %d\n",Use_FI);
+
       if(Use_FI > 2) {
-	Alarm(PRINT,"Invalid Fault Injection Count %d.  Index must be 0, 1 or 2.\n",
-	      Use_FI);
-	exit(0);
+	      Alarm(PRINT,"Invalid Fault Injection Count %d.  Index must be 0, 1 or 2.\n",
+	            Use_FI);
+	      exit(0);
       }
+
+      signal(SIGABRT, signal_handler);
+      signal(SIGSEGV, signal_handler);
+      signal(SIGFPE,  signal_handler);
+      signal(SIGILL,  signal_handler);
+
       argc--; argv++;
     }
     else if( (argc > 2) && (!strncmp(*argv, "-d", 2)) ) {
