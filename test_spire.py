@@ -1,8 +1,8 @@
 import sys, argparse
 import subprocess
 import time
-import threading
-import asyncio
+import zipfile
+import os
 
 RUN_COMMAND   = "python run_replica.py"
 # Script assumes replica is launched with the command:
@@ -22,6 +22,8 @@ IP_BASE       = "192.168.101."
 #     192.168.101.104
 CLIENT_IP     = "192.168.101.107"
 CLIENT_NAME   = "spire-client"
+
+log_list = list()
 
 def get_args(argv):
     parser = argparse.ArgumentParser(description="Script for testing Spire")
@@ -64,7 +66,7 @@ def get_args(argv):
 def benchmark_loop(args):
     # run a couple benchmarks and track how long they take
 
-    """average = 0
+    average = 0
     max = 0
     print("Running calibration benchmarks")
 
@@ -80,23 +82,30 @@ def benchmark_loop(args):
         average += run_time
         if run_time > max:
             max = run_time
+        
+        print("\n{RUN}/5 :    {TIME} seconds\n".format(RUN=i+1, TIME=run_time))
 
     average = average / 5
-    time_out = average + ((max - average) * 2)
-    """
-    if True:
-        
+    time_out = average + (max / 20)
+    print("Calibration complete - Final timeout: {TIME}\nStarting benchmarks\n".format(TIME=time_out))
+    
+    while True:
+        timeout_err = False
         cmd_str = "docker exec {container} python run_benchmark.py -n {num}".format(container=CLIENT_NAME, num=args.n)
-        print(cmd_str)
         subprocess.run("docker compose up -d", shell=True)
-        subprocess.run(cmd_str, shell=True)
+        print(cmd_str)
+        try:
+            subprocess.run(cmd_str, shell=True, timeout=time_out)
+        except TimeoutError:
+            print("Benchmark timed out during run, outputting logs\n")
+            timeout_err = True
 
         spire1 = subprocess.run("docker logs spire1", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         spire2 = subprocess.run("docker logs spire2", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         spire3 = subprocess.run("docker logs spire3", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         spire4 = subprocess.run("docker logs spire4", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-        check_logs(spire1.stdout., spire2.stdout.lower(), spire3.stdout.lower(), spire4.stdout.lower())
+        check_logs(timeout_err, spire1.stdout.decode().lower(), spire2.stdout.decode().lower(), spire3.stdout.decode().lower(), spire4.stdout.decode().lower())
 
         subprocess.run("docker compose down", shell=True)
 
@@ -104,35 +113,65 @@ def benchmark_loop(args):
         #subprocess.run(cmd_str, shell=True)
         #print(cmd_str)
 
-def check_logs(s1: str, s2: str, s3: str, s4: str):
+def check_logs(error: bool, s1: str, s2: str, s3: str, s4: str):
     
-    if "... goodbye" in s1:
-        # output to file
-        with open("spire1_output.txt", "w") as text_file:
-            print("{}".format(s1), file=text_file)
+    error_detected = error
 
-        print("Error found in spire1, outputting logs")
+    # spire1 checks paused due to current crashing issues
+    # if "... goodbye" in s1:
+    #     error_detected = True
+    #     print("Error found in spire1, outputting logs")
 
-    elif "... goodbye" in s2 or "exit caused by alarm" in s2:
-        # output to file
-        with open("spire2_output.txt", "w") as text_file:
-            print("{}".format(s2), file=text_file)
-
+    if "... goodbye" in s2 or "exit caused by alarm" in s2:
+        error_detected = True
         print("Error found in spire2, outputting logs")
 
-    elif "... goodbye" in s3 or "exit caused by alarm" in s3:
-        # output to file
-        with open("spire3_output.txt", "w") as text_file:
-            print("{}".format(s3), file=text_file)
-
+    if "... goodbye" in s3 or "exit caused by alarm" in s3:
+        error_detected = True
         print("Error found in spire3, outputting logs")
 
-    elif "... goodbye" in s4 or "exit caused by alarm" in s4:
-        # output to file
+    if "... goodbye" in s4 or "exit caused by alarm" in s4:
+        error_detected = True
+        print("Error found in spire4, outputting logs")
+
+    if error_detected:
+        with open("spire1_output.txt", "w") as text_file:
+            print("{}".format(s1), file=text_file)
+        with open("spire2_output.txt", "w") as text_file:
+            print("{}".format(s2), file=text_file)
+        with open("spire3_output.txt", "w") as text_file:
+            print("{}".format(s3), file=text_file)
         with open("spire4_output.txt", "w") as text_file:
             print("{}".format(s4), file=text_file)
 
-        print("Error found in spire4, outputting logs")
+        subprocess.run("docker cp spire-client:app/spire/out_bench_0.txt .", shell=True)
+        compress(["spire1_output.txt", "spire2_output.txt", "spire3_output.txt", "spire4_output.txt", "out_bench_0.txt"])
+
+def compress(file_names):
+    print("\nSaving logs to {}.zip\n".format(time.strftime("%m-%d-%Y %H:%M:%S")))
+
+    path = ""
+
+    compression = zipfile.ZIP_DEFLATED
+
+    zf = zipfile.ZipFile(time.strftime("%m-%d-%Y %H:%M:%S"), mode="w")
+    try:
+        for file_name in file_names:
+            zf.write(path + file_name, file_name, compress_type=compression)
+        log_list.append(time.strftime("%m-%d-%Y %H:%M:%S"))
+
+    except FileNotFoundError:
+        print("An error occurred when zipping logs")
+    finally:
+        zf.close()
+
+    try:
+        for file in file_names:
+            os.remove(file)
+    except FileNotFoundError:
+        print("File missing - check terminal output")
+
+    
 
 def benchmark(args):
     cmd_str = "docker exec {container} python run_benchmark.py -n {num}".format(container=CLIENT_NAME, num=args.n)
@@ -316,4 +355,9 @@ def main(argv):
     args.func(args)
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    try:
+        main(sys.argv[1:])
+    except KeyboardInterrupt:
+        print("User interrupted execution, cleaning up potentially open containers")
+        subprocess.run("docker compose down", shell=True)
+        print("\nOutput logs: {}".format(log_list))

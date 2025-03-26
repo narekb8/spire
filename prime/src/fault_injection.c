@@ -75,8 +75,6 @@ signed_message *FAULT_INJECTION_Manipulate_Message (signed_message *message)
     }
     else if(Use_FI == 2 && ++count % 10 == 0)
     {
-        if(message->type <= 12 && message->type >= 10) return;
-        
         srand(time(NULL));
         unsigned int offset = rand() % message->len;
         char rand_val = rand() % 256;
