@@ -48,7 +48,7 @@
 
 typedef struct dummy_dll_node_struct {
   void *data;
-  int32u extra[2]; /* generic integers */
+  int32u extra[3]; /* generic integers */
   void *next;
   util_stopwatch sw;
 } dll_node_struct;
@@ -73,6 +73,7 @@ void UTIL_DLL_Set_Begin( dll_struct *dll );
 void* UTIL_DLL_Get_Signed_Message( dll_struct *dll ); 
 
 void UTIL_DLL_Add_Data( dll_struct *dll, void *data ); 
+void UTIL_DLL_Add_Data_Faulty( dll_struct *dll, void *data, bool faulty ); 
 void UTIL_DLL_Add_Data_To_Front(dll_struct *dll, void *data); 
 
 int32u UTIL_DLL_Is_Empty( dll_struct *dll ); 

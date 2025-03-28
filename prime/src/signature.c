@@ -104,7 +104,7 @@ void SIG_Add_To_Pending_Messages(signed_message *m, int32u dest_bits,
   //if (dest_bits == BROADCAST)
   //  PROCESS_Message(m);
 
-  m = FAULT_INJECTION_Manipulate_Message(m);
+  signed_message *new_m = FAULT_INJECTION_Manipulate_Message(m);
 
   if(UTIL_DLL_Is_Empty(&DATA.SIG.pending_messages_dll)) {
     UTIL_Stopwatch_Start(&DATA.SIG.max_batch_sw);
@@ -112,6 +112,7 @@ void SIG_Add_To_Pending_Messages(signed_message *m, int32u dest_bits,
   }
     
   UTIL_DLL_Add_Data(&DATA.SIG.pending_messages_dll, m);
+  UTIL_DLL_Add_Data_Faulty(&DATA.SIG.pending_messages_dll, new_m, TRUE);
   UTIL_DLL_Set_Last_Extra(&DATA.SIG.pending_messages_dll, DEST, dest_bits);
   UTIL_DLL_Set_Last_Extra(&DATA.SIG.pending_messages_dll, TIMELINESS,
 			  timeliness);
@@ -240,7 +241,7 @@ void SIG_Finish_Pending_Messages(byte *signature)
   signed_message *mess;
   dll_struct *list;
   dll_struct original_list;
-  int32u sn, i, dest_bits, timeliness, sig_type;
+  int32u sn, i, dest_bits, timeliness, sig_type, faulty;
 
   list = &DATA.SIG.pending_messages_dll;
   sn   = list->length;
@@ -286,6 +287,7 @@ void SIG_Finish_Pending_Messages(byte *signature)
 
     dest_bits  = UTIL_DLL_Front_Extra(&original_list, DEST);
     timeliness = UTIL_DLL_Front_Extra(&original_list, TIMELINESS);
+    faulty = UTIL_DLL_Front_Extra(&original_list, 2);
     
     /* Once signed, client responses should be sent to the client */
     if(mess->type == CLIENT_RESPONSE)
@@ -295,13 +297,13 @@ void SIG_Finish_Pending_Messages(byte *signature)
       /* Apply the message and then dispatch it, just as we would a local
        * message that we constructed, unless it's a RECON message. */
       //if(mess->type != RECON) { }
-      if (dest_bits == BROADCAST || UTIL_Bitmap_Is_Set(&dest_bits, VAR.My_Server_ID)) {
+      if (!faulty && (dest_bits == BROADCAST || UTIL_Bitmap_Is_Set(&dest_bits, VAR.My_Server_ID))) {
 	    PROCESS_Message(mess);
       }
  
       sig_type = VAL_Signature_Type(mess);
-      if (DATA.PR.recovery_status[VAR.My_Server_ID] == PR_NORMAL || 
-            sig_type == VAL_SIG_TYPE_TPM_SERVER || sig_type == VAL_SIG_TYPE_TPM_MERKLE)
+      if (faulty && (DATA.PR.recovery_status[VAR.My_Server_ID] == PR_NORMAL || 
+            sig_type == VAL_SIG_TYPE_TPM_SERVER || sig_type == VAL_SIG_TYPE_TPM_MERKLE))
       {
           /* If we're throttling outgoing messages, add it to the appropriate
            * queue based on timeliness. Otherwise, send immediately to the 

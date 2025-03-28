@@ -7,6 +7,7 @@
 #include "fault_injection.h"
 #include "signature.h"
 #include "data_structs.h"
+#include "utility.h"
 
 extern server_data_struct DATA;
 extern server_variables   VAR;
@@ -38,14 +39,16 @@ const char* packet_type_names[] = {"DUMMY",
 * letting us add more later more conveniently. */
 signed_message *FAULT_INJECTION_Manipulate_Message (signed_message *message)
 {
+    signed_message *new_message = UTIL_New_Signed_Message();
+    memcpy(new_message, message, UTIL_Message_Size(message));
     //printf("Current FI Value at Signature %d\n", Use_FI);
     if(Use_FI == 1)
     {
-        switch ((enum packet_types) message->type)
+        switch ((enum packet_types) new_message->type)
         {
             case PO_ACK:
             //Aren Test 1
-            po_ack_message *po_ack_specific = (po_ack_message*)(message + 1);
+            po_ack_message *po_ack_specific = (po_ack_message*)(new_message + 1);
             po_ack_part *ack_part = (po_ack_part *)(po_ack_specific + 1);
             for(int i = 0; i < po_ack_specific->num_ack_parts; i++)
             {
@@ -62,7 +65,7 @@ signed_message *FAULT_INJECTION_Manipulate_Message (signed_message *message)
             break;
 
             case PRE_PREPARE:
-            pre_prepare_message *pp_specific = (pre_prepare_message *)(message + 1);
+            pre_prepare_message *pp_specific = (pre_prepare_message *)(new_message + 1);
             if (VAR.My_Server_ID == 1 && pp_specific->seq_num % 10 == 0 ){
                 srand(time(NULL)); 
                 pp_specific->seq_num = rand();// % 51; 
@@ -76,10 +79,10 @@ signed_message *FAULT_INJECTION_Manipulate_Message (signed_message *message)
     else if(Use_FI == 2 && ++count % 10 == 0)
     {
         srand(time(NULL));
-        unsigned int offset = rand() % message->len;
+        unsigned int offset = rand() % new_message->len;
         char rand_val = rand() % 256;
         // signed message header size is 160, increment offset past this to prevent rampant segfaults
-        char *offset_pointer = ((char *) message) + offset + 160;
+        char *offset_pointer = ((char *) new_message) + offset + sizeof(signed_message);
 
         char base_val = *offset_pointer;
         *offset_pointer = rand_val;
@@ -88,8 +91,13 @@ signed_message *FAULT_INJECTION_Manipulate_Message (signed_message *message)
          * using type + len for now, but not if sure that 
          * guarantees a unique marker for each packet. */
         Alarm(PRINT, "Count: %d - Type: %s - Len: %d - Modified Byte: %d from %d to %d.\n", 
-                count, packet_type_names[message->type], message->len, offset, base_val, rand_val);
+                count, packet_type_names[new_message->type], new_message->len, offset, base_val, rand_val);
+    }
+    else if(Use_FI == 2)
+    {
+        Alarm(PRINT, "Non-manipulated Count: %d - Type: %s - Len: %d.\n", 
+                count, packet_type_names[message->type], message->len);
     }
 
-    return message;
+    return new_message;
 }

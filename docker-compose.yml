@@ -16,7 +16,7 @@ services:
         ipv4_address: 192.168.101.101
     cap_add:
       - NET_ADMIN
-    command: python run_replica.py -id 1 -f 2
+    command: python run_replica.py -id 1 -f ${FAULT_INJ-0}
 
   spire2:
     image: spire-img

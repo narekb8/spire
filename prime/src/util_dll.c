@@ -167,6 +167,38 @@ void UTIL_DLL_Add_Data( dll_struct *dll, void *data ) {
   node->next = NULL;
   node->extra[0] = 0;
   node->extra[1] = 0;
+  node->extra[2] = 0;
+  UTIL_Stopwatch_Start( &(node->sw) );
+  dll->end = node;
+
+}
+
+void UTIL_DLL_Add_Data_Faulty( dll_struct *dll, void *data, bool faulty ) {
+
+  inc_ref_cnt( data );
+
+  dll->length++;
+    
+  dll_node_struct *node;
+ 
+  if((node = (dll_node_struct*)new_ref_cnt(DLL_NODE_OBJ))==NULL) {
+    Alarm(EXIT,"UTIL_DLL_Add_Data:"
+	  " Could not allocate memory for slot.\n");
+  }
+
+  if ( dll->end != NULL ) {
+    dll->end->next = node;
+  }
+ 
+  if ( dll->begin == NULL ) {
+    dll->begin = node;
+  }
+ 
+  node->data = data;
+  node->next = NULL;
+  node->extra[0] = 0;
+  node->extra[1] = 0;
+  node->extra[2] = faulty;
   UTIL_Stopwatch_Start( &(node->sw) );
   dll->end = node;
 
@@ -187,6 +219,7 @@ void UTIL_DLL_Add_Data_To_Front(dll_struct *dll, void *data)
   dll->begin = node;
   node->extra[0] = 0;
   node->extra[1] = 0;
+  node->extra[2] = 0;
   
   if(dll->end == NULL)
     dll->end = node;
