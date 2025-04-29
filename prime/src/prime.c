@@ -245,6 +245,7 @@ void Usage(int argc, char **argv)
     }
     else if( (argc > 1) && (!strncmp(*argv, "-f", 2)) ) {
       sscanf(argv[1], "%d", &tmp);
+      srand(time(NULL));
       Use_FI = tmp;
       printf("Current FI Value at Launch %d\n",Use_FI);
 

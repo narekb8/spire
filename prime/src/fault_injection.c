@@ -73,9 +73,12 @@ signed_message *FAULT_INJECTION_Manipulate_Message (signed_message *message)
             break;
         }
     }
-    else if(Use_FI == 2 && ++count % 10 == 0)
+    else if(Use_FI == 2)
     {
-        srand(time(NULL));
+	count++;
+	if(rand() % 20 != 1)
+		return message;
+
         unsigned int offset = rand() % message->len;
         char rand_val = rand() % 256;
         // signed message header size is 160, increment offset past this to prevent rampant segfaults

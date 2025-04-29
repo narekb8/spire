@@ -74,7 +74,7 @@ def benchmark_loop(args):
         run_time = time.time()
         cmd_str = "docker exec {container} python run_benchmark.py -n {num}".format(container=CLIENT_NAME, num=args.n)
 
-        subprocess.run("docker compose up -d", shell=True)
+        subprocess.run("FAULT_INJ=0 docker compose up -d", shell=True)
         subprocess.run(cmd_str, shell=True)
         subprocess.run("docker compose down", shell=True)
 
@@ -86,17 +86,17 @@ def benchmark_loop(args):
         print("\n{RUN}/5 :    {TIME} seconds\n".format(RUN=i+1, TIME=run_time))
 
     average = average / 5
-    time_out = average + (max / 20)
+    time_out = average + (max / 30)
     print("Calibration complete - Final timeout: {TIME}\nStarting benchmarks\n".format(TIME=time_out))
     
     while True:
         timeout_err = False
         cmd_str = "docker exec {container} python run_benchmark.py -n {num}".format(container=CLIENT_NAME, num=args.n)
-        subprocess.run("docker compose up -d", shell=True)
+        subprocess.run("FAULT_INJ=2 docker compose up -d", shell=True)
         print(cmd_str)
         try:
             subprocess.run(cmd_str, shell=True, timeout=time_out)
-        except TimeoutError:
+        except subprocess.TimeoutExpired:
             print("Benchmark timed out during run, outputting logs\n")
             timeout_err = True
 
@@ -154,7 +154,7 @@ def compress(file_names):
 
     compression = zipfile.ZIP_DEFLATED
 
-    zf = zipfile.ZipFile(time.strftime("%m-%d-%Y %H:%M:%S"), mode="w")
+    zf = zipfile.ZipFile(time.strftime("%m-%d-%Y %H:%M:%S") + ".zip", mode="w")
     try:
         for file_name in file_names:
             zf.write(path + file_name, file_name, compress_type=compression)
