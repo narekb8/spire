@@ -28,13 +28,25 @@ Build to container with the Dockerfile. During the build process a script runs t
 docker build -t spire-img .
 ```
 
-Then, run the docker-compose.yml which configures the network, ip addresses for containers, and runs either the `run_client.py` or `run_replica.py` scripts on container start.
+### Launch the Benchmark Environment
+
+To start the benchmark process, simply run the following command. It will handle launching the testing environment and calibration itself at launch.
+
+```
+python test_spire.py loop 2
+```
+
+First, the program will run 5 benchmarks with 0 faulty replicas and use the time it takes to configure a timeout period for the benchmark. From there, the script will run the benchmark repeatedly, only outputting logs for results that timeout or detect a crash on any non-faulty replicas. This will run indefinitely until the process is killed with `CTRL+C`, at which point the script will close any running Docker instances and print the list of new logs.
+
+### Only Launch the Docker Environment 
+
+To simply start the container without the benchmark, run the docker-compose.yml which configures the network, ip addresses for containers, and runs either the `run_client.py` or `run_replica.py` scripts on container start.
 
 ```
 docker compose up -d
 ```
 
-I've configured the `run_client.py` and `run_replica.py` to output to stdout, thus the logs are viewable using docker logs.
+Both `run_client.py` and `run_replica.py` output to stdout, so the logs are viewable using the docker logs command.
 
 ---
 
